@@ -7,6 +7,8 @@ A comprehensive Python toolkit for collecting and analyzing stock market data. T
 ## 📋 Table of Contents
 - [Setup](#setup)
 - [Get_quotes.py - Data Collection](#get_quotespy---data-collection)
+- [edgar_filings_collector.py - SEC Filings](#edgar_filings_collectorpy---sec-filings)
+- [edgar_financial_parser.py - XBRL Parser](#edgar_financial_parserpy---xbrl-parser)
 - [example_usage.py - Quick Start](#example_usagepy---quick-start)
 - [volatility_analysis.py - Volatility Analysis](#volatility_analysispy---volatility-analysis)
 - [Output Files](#output-files)
@@ -25,7 +27,7 @@ You'll see `(.venv)` in your terminal prompt.
 
 ### 2. Install Required Packages (if not already installed)
 ```bash
-pip install yfinance pandas numpy matplotlib
+pip install yfinance pandas numpy matplotlib scipy edgartools
 ```
 
 ### 3. Deactivate When Done
@@ -38,7 +40,7 @@ deactivate
 ## 📥 Get_quotes.py - Data Collection
 
 ### What It Does
-Downloads historical stock price data from Yahoo Finance and saves it as JSON. This is your data collection tool that fetches OHLCV (Open, High, Low, Close, Volume) data for any stock or index.
+Downloads historical stock price data from Yahoo Finance and saves it as JSON/CSV. This is your data collection tool that fetches OHLCV (Open, High, Low, Close, Volume) data for any stock or index.
 
 ### Basic Usage
 
@@ -48,6 +50,107 @@ python Get_quotes.py
 ```
 Follow the prompts to enter:
 - Tickers (e.g., `AAPL MSFT TSLA`)
+ - Start/End dates and interval (`1d` or `1mo`)
+ - Optional columns (e.g., `Close Volume`)
+ - Which data to fetch: `price`, `options`, and/or `financial`
+   - If `options` is selected, choose type: `calls`, `puts`, or `both`
+   - Optionally limit how many upcoming expirations to include (e.g., `3`)
+
+Interactive saves produce JSON in a type-first folder layout:
+
+```
+Yahoo_extracted/
+  price/YYYY-MM-DD/{TICKER}.json
+  options/YYYY-MM-DD/{TICKER}.json
+  financial/YYYY-MM-DD/{TICKER}.json
+```
+
+Notes:
+- Price files are per-ticker JSON with records and metadata.
+- Options files are per-ticker JSON with filtered expirations and `calls`/`puts` arrays.
+- Financial files are per-ticker JSON with earnings, balance sheet, income, and cashflow (annual + quarterly).
+### Yahoo_extracted folder structures
+
+There are two saver behaviors:
+
+1) Date-first (CSV + bundled fundamentals) — CLI `--save` uses this:
+```
+Yahoo_extracted/
+  YYYY-MM-DD/
+    price_data/
+      AAPL.csv
+      MSFT.csv
+      ...
+    financial_data/
+      financial_info.json   # options/earnings/balance-sheet/financials (if fetched via flags)
+```
+
+2) Type-first (JSON per ticker) — Interactive mode uses this:
+```
+Yahoo_extracted/
+  price/YYYY-MM-DD/{TICKER}.json
+  options/YYYY-MM-DD/{TICKER}.json
+  financial/YYYY-MM-DD/{TICKER}.json
+```
+
+Tips:
+- Use Interactive mode for clean, per-ticker JSON by type.
+- Use CLI `--save` when you want CSVs plus a single bundled fundamentals JSON.
+
+### New: Options, Earnings, and Financials
+
+You can now pull option chains, earnings history/dates, balance sheet, and key financial statements directly from `yfinance` via `Get_quotes.py`.
+
+#### Command-line examples
+
+Fetch prices and option chains for all expirations, then save fundamentals JSON:
+```bash
+python Get_quotes.py -t AAPL MSFT -s 2024-01-01 -e 2024-12-31 --options --save-info --info-output-dir Fundamentals_output
+```
+
+Fetch specific option expirations:
+```bash
+python Get_quotes.py -t AAPL -s 2024-01-01 -e 2024-12-31 --options --options-expirations 2025-01-17 2025-03-21
+```
+
+Include earnings (yearly/quarterly and earnings dates) and balance sheet/financials:
+```bash
+python Get_quotes.py -t AAPL MSFT -s 2023-01-01 -e 2025-12-31 \
+  --earnings --balance-sheet --financials --save-info
+```
+
+Interactive mode example flow:
+- Choose `price options financial` to fetch all types
+- Pick `options` type as `calls` or `both`
+- Set “Number of upcoming expirations” to `3` for near-term chains
+- Confirm and save — files are written under the type-first JSON layout
+
+#### Flags
+- `--options`: Fetch option chains
+- `--options-expirations YYYY-MM-DD ...`: Specific expirations (otherwise pulls all available)
+- `--earnings`: Fetch earnings (yearly, quarterly, and earnings dates)
+- `--balance-sheet`: Fetch balance sheet (annual + quarterly)
+- `--financials`: Fetch income and cashflow statements (annual + quarterly)
+- `--save-info`: Save fetched fundamentals/options to a single JSON file
+- `--info-output-dir DIR`: Where to save the info JSON (default: `Fundamentals_output`)
+
+#### Output structure (JSON)
+When using `--save-info`, a file like `Fundamentals_output/info_YYYY-MM-DD_to_YYYY-MM-DD.json` is created.
+It contains:
+```json
+{
+  "metadata": { "tickers": ["AAPL"], "start_date": "2024-01-01", "end_date": "2024-12-31", "interval": "1d" },
+  "options": { "AAPL": { "2025-01-17": { "calls": [...], "puts": [...] } } },
+  "earnings": { "AAPL": { "yearly": [...], "quarterly": [...], "earnings_dates": [...] } },
+  "balance_sheet": { "AAPL": { "balance_sheet": [...], "quarterly_balance_sheet": [...] } },
+  "financials": { "AAPL": { "income_statement": [...], "cashflow": [...], "quarterly_income_statement": [...], "quarterly_cashflow": [...] } }
+}
+```
+
+Notes:
+- Some assets (indexes, ETFs, crypto) may not have options or complete fundamentals.
+- Earnings date API may return limited history; use `--earnings` to include what’s available.
+
 - Start date (e.g., `2024-01-01`)
 - End date (e.g., `2025-12-26`)
 - Interval (`1d` for daily, `1mo` for monthly)
@@ -140,6 +243,156 @@ Creates a JSON file with:
   }
 }
 ```
+
+---
+
+## 📑 edgar_filings_collector.py - SEC Filings
+
+### What It Does
+Fetches official SEC filings (10-K, 10-Q, 8-K, etc.) from the EDGAR database using the edgartools library. Extracts financial statements (balance sheet, income statement, cash flow) and company information directly from regulatory filings.
+
+### Key Features
+- Accepts both stock tickers (e.g., `AAPL`) and CIK numbers (e.g., `0000320193`)
+- Fetches 10-K (annual), 10-Q (quarterly), 8-K (current events) reports
+- Extracts structured financial statements when available
+- Date range filtering
+- Saves to JSON organized by date
+
+### Basic Usage
+
+#### Interactive Mode
+```bash
+python edgar_filings_collector.py
+```
+Follow the prompts:
+- Tickers or CIK numbers (e.g., `AAPL MSFT` or `0000320193 0000789019`)
+- Form types (`10-K 10-Q 8-K`)
+- Date range (optional)
+- Max filings per form type
+
+#### Command-Line Mode
+
+Get latest 10-K filings:
+```bash
+python edgar_filings_collector.py -t AAPL -f 10-K --limit 5 --save
+```
+
+Multiple companies and forms:
+```bash
+python edgar_filings_collector.py -t AAPL MSFT GOOGL -f 10-K 10-Q --limit 3 --save
+```
+
+With date range:
+```bash
+python edgar_filings_collector.py -t TSLA -f 10-K -s 2020-01-01 -e 2024-12-31 --save
+```
+
+Using CIK numbers instead of tickers:
+```bash
+python edgar_filings_collector.py -t 0000320193 -f 10-K 10-Q --limit 5 --save
+```
+
+### Command-Line Options
+
+| Option | Short | Description | Example |
+|--------|-------|-------------|---------|
+| `--tickers` | `-t` | Stock tickers or CIK numbers | `-t AAPL MSFT` |
+| `--forms` | `-f` | Form types (default: 10-K 10-Q 8-K) | `-f 10-K 10-Q` |
+| `--start-date` | `-s` | Start date filter | `-s 2020-01-01` |
+| `--end-date` | `-e` | End date filter | `-e 2024-12-31` |
+| `--limit` | - | Max filings per form (default: 10) | `--limit 5` |
+| `--save` | - | Save to SEC_filings folder | `--save` |
+| `--output-dir` | - | Custom output directory | `--output-dir my_filings` |
+
+### Output Structure
+
+Files are saved to `SEC_filings/YYYY-MM-DD/{TICKER}_filings.json`:
+
+```json
+{
+  "metadata": {
+    "ticker": "AAPL",
+    "extraction_date": "2025-12-27T14:30:00",
+    "total_filings": 5
+  },
+  "company_info": {
+    "name": "Apple Inc.",
+    "cik": "0000320193",
+    "ticker": "AAPL",
+    "sic_code": "3571",
+    "industry": "Computer Hardware"
+  },
+  "filings": [
+    {
+      "form": "10-K",
+      "filing_date": "2024-11-01",
+      "accession_number": "0000320193-24-000123",
+      "period_of_report": "2024-09-30",
+      "balance_sheet": {...},
+      "income_statement": {...},
+      "cash_flow": {...}
+    }
+  ]
+}
+```
+
+### Common Form Types
+- **10-K**: Annual report with comprehensive financial statements
+- **10-Q**: Quarterly report with unaudited financials
+- **8-K**: Current report for major events (earnings, acquisitions, etc.)
+- **S-1**: Initial registration statement for IPOs
+- **DEF 14A**: Proxy statement (executive compensation, voting matters)
+
+### Tips
+- edgartools automatically converts tickers to CIK numbers internally
+- Some filings may not have structured financials (especially older ones or 8-Ks)
+- 10-K and 10-Q filings are most reliable for extracting financial statements
+- The tool uses your Columbia email (ld3179@columbia.edu) as identity per SEC requirements
+
+---
+
+## 📊 edgar_financial_parser.py - XBRL Parser
+
+### What It Does
+Fetches filings via EDGAR and parses XBRL statements (balance sheet, income statement, cash flow) into analysis-friendly JSON. Can also parse an existing JSON file without hitting the API.
+
+### Usage
+
+Fetch from EDGAR (10-K and 10-Q by default):
+```bash
+python edgar_financial_parser.py -t AAPL MSFT -f 10-K 10-Q --limit 4 --save
+```
+
+Date-filtered:
+```bash
+python edgar_financial_parser.py -t AAPL -f 10-K --start 2020-01-01 --end 2024-12-31 --limit 6 --save
+```
+
+Parse an existing JSON instead of calling the API:
+```bash
+python edgar_financial_parser.py --input-file SEC_financials/financials_2025-12-27.json --save
+```
+
+### Key Arguments
+- `-t / --tickers`: Tickers or CIKs
+- `-f / --forms`: Form types (default: 10-K 10-Q)
+- `--start`, `--end`: Date filters (YYYY-MM-DD)
+- `--limit`: Max filings per form (default: 4)
+- `--save`: Write consolidated JSON to `SEC_financials/financials_YYYY-MM-DD.json`
+- `--input-file`: Parse an existing JSON (skips SEC network calls; when set, tickers are optional)
+- `--output-dir`: Custom output folder
+
+### Output Shape (per ticker)
+- Files are saved under `SEC_financials/<YYYY-MM-DD>/<TICKER>_financials.json` (date comes from `metadata.extracted_at` when present, otherwise today)
+- Inside each file:
+  - `metadata`: ticker, forms, start/end, limit, extracted_at
+  - `filings`: list of filings with `form`, `filing_date`, `period_of_report`, `accession_number`, plus `balance_sheet`, `income_statement`, `cash_flow` (when XBRL available)
+
+Tips:
+- 10-K and 10-Q provide the richest XBRL data; some 8-Ks may lack statements.
+- `--input-file` is useful to re-run transformations without refetching.
+- When using `--input-file`, you can pass just the filename if it lives anywhere inside this repository; the parser will search the project folder for you.
+- If you only want recent filings, set `--limit` to a small number (e.g., 3 or 4).
 
 ---
 
