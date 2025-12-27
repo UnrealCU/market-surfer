@@ -6,7 +6,7 @@ A comprehensive Python toolkit for collecting and analyzing stock market data. T
 
 ## 📋 Table of Contents
 - [Setup](#setup)
-- [Get_quotes.py - Data Collection](#get_quotespy---data-collection)
+- [get_quotes.py - Data Collection](#get_quotespy---data-collection)
 - [edgar_filings_collector.py - SEC Filings](#edgar_filings_collectorpy---sec-filings)
 - [edgar_financial_parser.py - XBRL Parser](#edgar_financial_parserpy---xbrl-parser)
 - [example_usage.py - Quick Start](#example_usagepy---quick-start)
@@ -38,7 +38,7 @@ deactivate
 
 ---
 
-## 📥 Get_quotes.py - Data Collection
+## 📥 get_quotes.py - Data Collection
 
 ### What It Does
 Downloads historical stock price data from Yahoo Finance and saves it as JSON/CSV. This is your data collection tool that fetches OHLCV (Open, High, Low, Close, Volume) data for any stock or index.
@@ -47,7 +47,7 @@ Downloads historical stock price data from Yahoo Finance and saves it as JSON/CS
 
 #### Method 1: Command Line (Interactive)
 ```bash
-python Get_quotes.py
+python get_quotes.py
 ```
 Follow the prompts to enter:
 - Tickers (e.g., `AAPL MSFT TSLA`)
@@ -100,23 +100,23 @@ Tips:
 
 ### New: Options, Earnings, and Financials
 
-You can now pull option chains, earnings history/dates, balance sheet, and key financial statements directly from `yfinance` via `Get_quotes.py`.
+You can now pull option chains, earnings history/dates, balance sheet, and key financial statements directly from `yfinance` via `get_quotes.py`.
 
 #### Command-line examples
 
 Fetch prices and option chains for all expirations, then save fundamentals JSON:
 ```bash
-python Get_quotes.py -t AAPL MSFT -s 2024-01-01 -e 2024-12-31 --options --save-info --info-output-dir Fundamentals_output
+python get_quotes.py -t AAPL MSFT -s 2024-01-01 -e 2024-12-31 --options --save-info --info-output-dir Fundamentals_output
 ```
 
 Fetch specific option expirations:
 ```bash
-python Get_quotes.py -t AAPL -s 2024-01-01 -e 2024-12-31 --options --options-expirations 2025-01-17 2025-03-21
+python get_quotes.py -t AAPL -s 2024-01-01 -e 2024-12-31 --options --options-expirations 2025-01-17 2025-03-21
 ```
 
 Include earnings (yearly/quarterly and earnings dates) and balance sheet/financials:
 ```bash
-python Get_quotes.py -t AAPL MSFT -s 2023-01-01 -e 2025-12-31 \
+python get_quotes.py -t AAPL MSFT -s 2023-01-01 -e 2025-12-31 \
   --earnings --balance-sheet --financials --save-info
 ```
 
@@ -160,24 +160,24 @@ Notes:
 #### Method 2: Command Line (Direct)
 ```bash
 # Single stock
-python Get_quotes.py --tickers AAPL --start 2024-01-01 --end 2025-12-26
+python get_quotes.py --tickers AAPL --start 2024-01-01 --end 2025-12-26
 
 # Multiple stocks
-python Get_quotes.py --tickers AAPL MSFT TSLA --start 2024-01-01 --end 2025-12-26
+python get_quotes.py --tickers AAPL MSFT TSLA --start 2024-01-01 --end 2025-12-26
 
 # Specific columns only
-python Get_quotes.py --tickers AAPL --start 2024-01-01 --end 2025-12-26 --columns Close Volume
+python get_quotes.py --tickers AAPL --start 2024-01-01 --end 2025-12-26 --columns Close Volume
 
 # Monthly data instead of daily
-python Get_quotes.py --tickers AAPL --start 2024-01-01 --end 2025-12-26 --interval 1mo
+python get_quotes.py --tickers AAPL --start 2024-01-01 --end 2025-12-26 --interval 1mo
 
 # Custom output file
-python Get_quotes.py --tickers AAPL MSFT --start 2024-01-01 --end 2025-12-26 --output my_stocks.json
+python get_quotes.py --tickers AAPL MSFT --start 2024-01-01 --end 2025-12-26 --output my_stocks.json
 ```
 
 #### Method 3: Import in Python Code
 ```python
-from Get_quotes import get_quotes
+from get_quotes import get_quotes
 
 # Get data as JSON string
 json_data = get_quotes('AAPL', '2024-01-01', '2025-12-26')
@@ -464,7 +464,7 @@ Choose between two return calculation methods:
 #### JSON Files
 - Must contain `metadata.tickers` and `data` structure
 - Can include multiple tickers in one file
-- Use output from Get_quotes.py or example_usage.py
+- Use output from get_quotes.py or example_usage.py
 
 #### CSV Files
 - Must have columns: `Date`, `Close` (required)
@@ -603,7 +603,7 @@ Example JSON structure:
 ## 📁 Output Files
 
 ### Generated Files
-- **output.json** / **indices_10years.json** - Stock price data from Get_quotes.py
+- **output.json** / **indices_10years.json** - Stock price data from get_quotes.py
 - **data/volatility_*.png** - Volatility charts from volatility_analysis.py
 - **data/volatility_*.json** - Volatility data and statistics from volatility_analysis.py
 - **company_tickers.json** - Reference file of company ticker symbols
@@ -626,7 +626,7 @@ source .venv/bin/activate
 python example_usage.py
 
 # Option B: Get your own stocks
-python Get_quotes.py --tickers AAPL MSFT TSLA NVDA GOOGL --start 2020-01-01 --end 2025-12-26 --output my_stocks.json
+python get_quotes.py --tickers AAPL MSFT TSLA NVDA GOOGL --start 2020-01-01 --end 2025-12-26 --output my_stocks.json
 ```
 
 ### Step 3: Analyze Volatility
@@ -673,7 +673,7 @@ pip install yfinance pandas numpy matplotlib
 ### Error: "JSON file not found"
 **Solution**: 
 - Check the file path is correct
-- Run `Get_quotes.py` first to create the JSON file
+- Run `get_quotes.py` first to create the JSON file
 - Use quotes if filename has spaces: `"my data.json"`
 
 ### Error: "No data for ticker"
@@ -694,7 +694,7 @@ Fetch more historical data with an earlier start date.
 ### Python Command Not Found
 **Solution**: Use `python3` instead:
 ```bash
-python3 Get_quotes.py
+python3 get_quotes.py
 python3 volatility_analysis.py indices_10years.json
 ```
 
@@ -733,7 +733,7 @@ python3 volatility_analysis.py indices_10years.json
 
 **Questions or issues?** Check the Troubleshooting section or review the individual script help:
 ```bash
-python Get_quotes.py --help
+python get_quotes.py --help
 python volatility_analysis.py --help
 python mahalanobis_regime.py --help
 ```

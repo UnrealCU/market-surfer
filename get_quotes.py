@@ -78,7 +78,7 @@ class FinancialDataCollector:
                 print(f"✓ ({len(ticker_data)} records)")
                 
             except Exception as e:
-                print(f"✗ Error: {str(e)}")
+                print(f"✗ Error: {_err_detail(e)}")
         
         return self.data
     
@@ -127,7 +127,8 @@ class FinancialDataCollector:
                     except Exception as e:
                         # Skip problematic expiration
                         continue
-            except Exception:
+            except Exception as e:
+                print(f"✗ Error fetching options for {ticker}: {_err_detail(e)}")
                 continue
         self.options = results
         return results
@@ -151,7 +152,8 @@ class FinancialDataCollector:
                 except Exception:
                     earnings['earnings_dates'] = []
                 results[ticker] = earnings
-            except Exception:
+            except Exception as e:
+                print(f"✗ Error fetching earnings for {ticker}: {_err_detail(e)}")
                 results[ticker] = {}
         self.earnings = results
         return results
@@ -188,7 +190,8 @@ class FinancialDataCollector:
                     'cashflow': _to_records(cash),
                     'quarterly_cashflow': _to_records(cash_q),
                 }
-            except Exception:
+            except Exception as e:
+                print(f"✗ Error fetching balance sheet/financials for {ticker}: {_err_detail(e)}")
                 results[ticker] = {}
         self.balance_sheet = {k: {"balance_sheet": v.get("balance_sheet"), "quarterly_balance_sheet": v.get("quarterly_balance_sheet")}
                               for k, v in results.items()}
@@ -538,7 +541,7 @@ def get_quotes(tickers: Union[str, List[str]],
         - summary: Summary statistics
     
     Example:
-        >>> from Get_quotes import get_quotes
+        >>> from get_quotes import get_quotes
         >>> data = get_quotes('AAPL', '2025-01-01', '2025-01-10')
         >>> print(data)
         
@@ -885,11 +888,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples (Command-line mode):
-  python Get_quotes.py -t AAPL GOOGL MSFT -s 2023-01-01 -e 2023-12-31
-  python Get_quotes.py -t AAPL -s 2022-01-01 -e 2024-12-31 -i 1mo -c Close Volume
-  python Get_quotes.py -t BTC-USD -s 2024-01-01 -e 2024-12-31 --save
+  python get_quotes.py -t AAPL GOOGL MSFT -s 2023-01-01 -e 2023-12-31
+  python get_quotes.py -t AAPL -s 2022-01-01 -e 2024-12-31 -i 1mo -c Close Volume
+  python get_quotes.py -t BTC-USD -s 2024-01-01 -e 2024-12-31 --save
 
-Or just run: python Get_quotes.py (for interactive mode)
+Or just run: python get_quotes.py (for interactive mode)
         """
     )
     

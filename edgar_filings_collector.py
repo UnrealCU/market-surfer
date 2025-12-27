@@ -16,6 +16,19 @@ from edgar import set_identity, Company, Filing
 set_identity("Lukas Dabrowski ld3179@columbia.edu")
 
 
+def _err_detail(exc: Exception) -> str:
+    """Return error string with HTTP status code when available."""
+    code = None
+    resp = getattr(exc, "response", None)
+    if resp is not None:
+        code = getattr(resp, "status_code", None) or getattr(resp, "status", None)
+    if code is None:
+        code = getattr(exc, "status", None) or getattr(exc, "status_code", None)
+    if code:
+        return f"{exc} (status {code})"
+    return str(exc)
+
+
 class EdgarFilingsCollector:
     """
     Collect and extract financial data from SEC EDGAR filings.
@@ -58,7 +71,7 @@ class EdgarFilingsCollector:
                 self.companies[ticker] = company
                 print(f"✓ {company.name}")
             except Exception as e:
-                print(f"✗ Error: {str(e)}")
+                print(f"✗ Error: {_err_detail(e)}")
                 
         return self.companies
     
@@ -113,7 +126,7 @@ class EdgarFilingsCollector:
                     print(f"✓ ({len(filtered)} filings)")
                     
                 except Exception as e:
-                    print(f"✗ Error: {str(e)}")
+                    print(f"✗ Error: {_err_detail(e)}")
                     
         return self.filings
     
@@ -183,7 +196,7 @@ class EdgarFilingsCollector:
                                 pass
                                 
                         except Exception as e:
-                            filing_data['download_error'] = f"Could not download full filing: {str(e)}"
+                            filing_data['download_error'] = f"Could not download full filing: {_err_detail(e)}"
                     
                     # Extract XBRL financials if available
                     if extract_xbrl:

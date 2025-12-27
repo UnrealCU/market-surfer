@@ -18,6 +18,19 @@ from edgar import set_identity, Company
 set_identity("Lukas Dabrowski ld3179@columbia.edu")
 
 
+def _err_detail(exc: Exception) -> str:
+    """Return error string with HTTP status code when available."""
+    code = None
+    resp = getattr(exc, "response", None)
+    if resp is not None:
+        code = getattr(resp, "status_code", None) or getattr(resp, "status", None)
+    if code is None:
+        code = getattr(exc, "status", None) or getattr(exc, "status_code", None)
+    if code:
+        return f"{exc} (status {code})"
+    return str(exc)
+
+
 def resolve_input_file(path: str) -> str:
     """Locate an input file by searching within the project root if needed."""
     if not path:
@@ -158,7 +171,7 @@ def collect_financials(
         try:
             company = Company(ticker)
         except Exception as exc:
-            results[ticker] = {"error": f"Could not load company: {exc}"}
+            results[ticker] = {"error": f"Could not load company: {_err_detail(exc)}"}
             continue
 
         filings_out: List[Dict[str, Any]] = []
@@ -166,7 +179,7 @@ def collect_financials(
             try:
                 filings = company.get_filings(form=form).latest(limit)
             except Exception as exc:
-                results[ticker] = {"error": f"Could not fetch filings: {exc}"}
+                results[ticker] = {"error": f"Could not fetch filings: {_err_detail(exc)}"}
                 continue
 
             for filing in filings:

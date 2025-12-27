@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Get 10 years of daily quotes for major indices"""
 
-from Get_quotes import get_quotes
+from get_quotes import get_quotes
 from datetime import datetime, timedelta
 import json
 
