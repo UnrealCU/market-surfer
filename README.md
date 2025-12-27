@@ -11,6 +11,7 @@ A comprehensive Python toolkit for collecting and analyzing stock market data. T
 - [edgar_financial_parser.py - XBRL Parser](#edgar_financial_parserpy---xbrl-parser)
 - [example_usage.py - Quick Start](#example_usagepy---quick-start)
 - [volatility_analysis.py - Volatility Analysis](#volatility_analysispy---volatility-analysis)
+- [mahalanobis_regime.py - Multivariate Stress Detection](#mahalanobis_regimepy---multivariate-stress-detection)
 - [Output Files](#output-files)
 - [Troubleshooting](#troubleshooting)
 
@@ -798,6 +799,15 @@ python mahalanobis_regime.py --input vol_ratios_stocks.json vol_ratios_bonds.jso
 ```bash
 python mahalanobis_regime.py --metric 3M --window 63
 ```
+
+### Quickstart (copy/paste)
+- Default inputs and 1M metric: `python mahalanobis_regime.py`
+- Combine multiple vol sources: `python mahalanobis_regime.py --input Volatility_output/ratios/vol_ratios.json other_vols.json`
+- Custom metric/window/output dir: `python mahalanobis_regime.py --metric 3M --window 126 --output-dir Volatility_output/regimes_3M`
+
+### Sample Output Location
+- See the consolidated sample descriptions in [sample_output/README.md](sample_output/README.md)
+- Default runtime output is written to [Volatility_output/regimes/mahalanobis_regimes.json](Volatility_output/regimes/mahalanobis_regimes.json)
 
 ### Output
 
