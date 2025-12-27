@@ -12,15 +12,22 @@ ENV/
 env/
 
 # Output directories
-regime_output/
-Volatility_output/
 Yahoo_extracted/
-graphs/
+
+# Keep output results
+!regime_output/
+!Volatility_output/graphs/
+!graphs/
 
 # Data files (optional - exclude if too large)
 *.csv
 clean_data/*.json
 FRED data/*.csv
+
+# But keep specific output folders
+!regime_output/**
+!Volatility_output/graphs/**
+!graphs/**
 
 # IDE
 .vscode/

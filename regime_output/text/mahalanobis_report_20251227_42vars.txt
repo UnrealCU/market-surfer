@@ -1,0 +1,66 @@
+================================================================================
+MAHALANOBIS DISTANCE REGIME ANALYSIS REPORT
+================================================================================
+
+ANALYSIS CONDITIONS:
+--------------------------------------------------------------------------------
+Calculation Date:     2025-12-27T08:49:05.824283
+Input Files:          Volatility_output/data/volatility_AAXJ.json, Volatility_output/data/volatility_CL=F.json, Volatility_output/data/volatility_DBC.json, Volatility_output/data/volatility_DGS10.json, Volatility_output/data/volatility_DGS2.json, Volatility_output/data/volatility_DGS30.json, Volatility_output/data/volatility_DGS3MO.json, Volatility_output/data/volatility_DX-Y.NYB.json, Volatility_output/data/volatility_EFFR.json, Volatility_output/data/volatility_FTSE.json, Volatility_output/data/volatility_GC=F.json, Volatility_output/data/volatility_GSPC.json, Volatility_output/data/volatility_N225.json, Volatility_output/data/volatility_VIX.json
+Metrics Used:         1M, 1Y, ratio (1M/1Y)
+Number of Variables:  42
+Rolling Window:       252 trading days
+Date Range:           1962-01-31 to 2025-12-24
+Total Observations:   2940
+
+================================================================================
+
+DISTANCE STATISTICS:
+--------------------------------------------------------------------------------
+Mean:     12.454766
+Median:   10.915959
+Std Dev:  9.712176
+Min:      6.022712
+Max:      336.203329
+
+REGIME DISTRIBUTION:
+--------------------------------------------------------------------------------
+Elevated       :   735 days ( 25.0%)
+Extreme        :   294 days ( 10.0%)
+High           :   441 days ( 15.0%)
+Normal         :  1470 days ( 50.0%)
+
+CONTINUOUS STRESS STATISTICS:
+--------------------------------------------------------------------------------
+Mean:     0.989495
+Median:   1.000000
+Std Dev:  0.053682
+Max:      1.000000
+
+TOP 20 HIGHEST STRESS DATES:
+--------------------------------------------------------------------------------
+Date             Distance   Percentile          Regime       Stress
+--------------------------------------------------------------------------------
+2024-09-19     336.203329       100.00         Extreme     1.000000
+2021-04-21     242.152418        99.97         Extreme     1.000000
+2024-10-21     124.887388        99.93         Extreme     1.000000
+2020-03-09     122.817355        99.90         Extreme     1.000000
+2020-03-12      99.517562        99.86         Extreme     1.000000
+2020-03-16      95.532620        99.83         Extreme     1.000000
+2020-03-18      77.211801        99.80         Extreme     1.000000
+2020-04-14      73.336328        99.76         Extreme     1.000000
+2014-11-28      67.608575        99.73         Extreme     1.000000
+2025-04-04      52.612131        99.69         Extreme     1.000000
+2025-04-09      51.516464        99.66         Extreme     1.000000
+2022-06-16      50.375473        99.63         Extreme     1.000000
+2020-03-13      48.578978        99.59         Extreme     1.000000
+2020-03-06      47.662459        99.56         Extreme     1.000000
+2018-02-05      47.520281        99.52         Extreme     1.000000
+2015-12-17      45.881577        99.49         Extreme     1.000000
+2025-04-07      44.914366        99.46         Extreme     1.000000
+2024-10-02      44.625408        99.42         Extreme     1.000000
+2020-03-10      43.894932        99.39         Extreme     1.000000
+2020-03-17      43.604309        99.35         Extreme     1.000000
+
+================================================================================
+END OF REPORT
+================================================================================
