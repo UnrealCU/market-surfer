@@ -6,17 +6,25 @@ Use this file to keep a simple, human-readable to-do list for the project.
 - Edit this file directly for quick notes or checkboxes.
 - If you want programmatic tracking, use the repository's `manage_todo_list` tool (internal) to keep a structured list.
 
-## Template
-- [ ] Short task title — brief description (owner, ETA)
-- [ ] Another task — notes
+## XBRL // Edgar
 
-## Example
-- [ ] Implement `--pause-seconds` in EDGAR scripts — add CLI arg, implement sleep/retry (Lukas, next)
-- [ ] Add `--standardize` output pipeline — create `standardize.py` and tests (Lukas)
+- Improve parsing capabilities to standardize naming convention across different assets
 
-## Completed
-- [x] Normalize offline payloads in XBRL parser
-- [x] Rename `Get_quotes.py` → `get_quotes.py`
+
+## Volatility 
+
+- Create Implied Volatility plane using option chain 
+- Try different mathematical methods for deriving volatility
+
+
+## Trading Strategy 
+
+- Build a hypothesis and test different trading ideas
+
+## Add-ons/non-priority
+
+- AI reading of financial discloses, which derives sentiment analysis 
+- Improve API/data source for better capabilities + larger data set
 
 ---
 

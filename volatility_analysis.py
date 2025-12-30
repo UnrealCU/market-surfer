@@ -415,6 +415,8 @@ Examples:
                         help='Specific tickers to analyze (default: all tickers in files)')
     parser.add_argument('--method', '-m', choices=['log', 'bps'], default='log',
                         help='Return calculation method: log for log returns (default), bps for basis points')
+    parser.add_argument('--graph', '-g', action='store_true', default=False,
+                        help='Generate graphs (default: False, only JSON output)')
     
     args = parser.parse_args()
     
@@ -533,9 +535,10 @@ Examples:
         # Generate report
         generate_volatility_report(df, ticker, method=args.method)
         
-        # Plot and save to graphs folder
-        plot_path = os.path.join(graphs_dir, f'volatility_{ticker.replace("^", "").replace(":", "")}.png')
-        plot_volatility_quartiles(df, ticker, method=args.method, save_path=plot_path)
+        # Plot and save to graphs folder (only if --graph flag is set)
+        if args.graph:
+            plot_path = os.path.join(graphs_dir, f'volatility_{ticker.replace("^", "").replace(":", "")}.png')
+            plot_volatility_quartiles(df, ticker, method=args.method, save_path=plot_path)
         
         # Export volatility data to JSON in data folder
         export_volatility_json(df, ticker, data_dir, args.method)

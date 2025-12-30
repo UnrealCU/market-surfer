@@ -37,6 +37,9 @@ class FinancialDataCollector:
         self.interval = interval
         self.data_points = data_points
         self.data = {}
+        # retry/backoff settings
+        self.max_retries = 3
+        self.backoff_base = 0.5
         # Extra datasets
         self.options: dict = {}
         self.earnings: dict = {}
@@ -53,32 +56,50 @@ class FinancialDataCollector:
         print(f"Fetching {self.interval} data for {len(self.tickers)} ticker(s)...")
         print(f"Date range: {self.start_date} to {self.end_date}")
         
+        import math, random
         for ticker in self.tickers:
-            try:
-                print(f"  Downloading {ticker}...", end=" ")
-                ticker_data = yf.download(
-                    ticker,
-                    start=self.start_date,
-                    end=self.end_date,
-                    interval=self.interval,
-                    progress=False
-                )
-                
-                # Flatten multi-level columns if present (yfinance returns MultiIndex columns)
-                if isinstance(ticker_data.columns, pd.MultiIndex):
-                    # Get just the first level (Price, Open, High, etc.)
-                    ticker_data.columns = ticker_data.columns.get_level_values(0)
-                
-                # Select specific columns if specified
-                if self.data_points:
-                    available_cols = [col for col in self.data_points if col in ticker_data.columns]
-                    ticker_data = ticker_data[available_cols]
-                
-                self.data[ticker] = ticker_data
-                print(f"✓ ({len(ticker_data)} records)")
-                
-            except Exception as e:
-                print(f"✗ Error: {_err_detail(e)}")
+            attempt = 0
+            last_exc = None
+            while attempt <= self.max_retries:
+                try:
+                    attempt += 1
+                    print(f"  Downloading {ticker}...", end=" ")
+                    ticker_data = yf.download(
+                        ticker,
+                        start=self.start_date,
+                        end=self.end_date,
+                        interval=self.interval,
+                        progress=False
+                    )
+
+                    # Flatten multi-level columns if present (yfinance returns MultiIndex columns)
+                    if isinstance(getattr(ticker_data, 'columns', None), pd.MultiIndex):
+                        ticker_data.columns = ticker_data.columns.get_level_values(0)
+
+                    # Select specific columns if specified
+                    if self.data_points:
+                        available_cols = [col for col in self.data_points if col in ticker_data.columns]
+                        ticker_data = ticker_data[available_cols]
+
+                    self.data[ticker] = ticker_data
+                    print(f"✓ ({len(ticker_data)} records)")
+                    last_exc = None
+                    break
+
+                except Exception as e:
+                    last_exc = e
+                    # On exception, retry with exponential backoff + jitter
+                    if attempt > self.max_retries:
+                        print(f"✗ Error after {self.max_retries} retries: {_err_detail(e)}")
+                        break
+                    sleep = self.backoff_base * (2 ** (attempt - 1))
+                    sleep = sleep + random.uniform(0, min(sleep, 0.5))
+                    print(f"✗ Error (attempt {attempt}/{self.max_retries}), retrying in {sleep:.2f}s: {_err_detail(e)}")
+                    try:
+                        from time import sleep as _tsleep
+                        _tsleep(sleep)
+                    except Exception:
+                        pass
         
         return self.data
     
@@ -427,9 +448,30 @@ class FinancialDataCollector:
                 
                 # Helper function to convert to native Python type
                 def to_python(val):
-                    if hasattr(val, 'item'):
-                        return val.item()
-                    return float(val)
+                    import numpy as _np
+                    # If it's a pandas Series/DataFrame cell that wraps an array-like,
+                    # try to coerce to a scalar safely.
+                    try:
+                        # Handle pandas scalars or numpy scalars
+                        if hasattr(val, 'item'):
+                            try:
+                                return val.item()
+                            except Exception:
+                                pass
+
+                        # Numeric conversion for standard types
+                        return float(val)
+                    except Exception:
+                        try:
+                            arr = _np.asarray(val)
+                            if arr.size == 0:
+                                return None
+                            # Prefer a single scalar if present, else take first element
+                            if arr.size == 1:
+                                return float(arr.item())
+                            return float(arr.flat[0])
+                        except Exception:
+                            return None
                 
                 stats[ticker] = {
                     'records': len(df),
