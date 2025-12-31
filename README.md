@@ -11,6 +11,7 @@ A comprehensive Python toolkit for collecting and analyzing stock market data. T
 - [edgar_financial_parser.py - XBRL Parser](#edgar_financial_parserpy---xbrl-parser)
 - [example_usage.py - Quick Start](#example_usagepy---quick-start)
 - [volatility_analysis.py - Volatility Analysis](#volatility_analysispy---volatility-analysis)
+- [vol_sp500components.py - S&P 500 Volatility by Sector](#vol_sp500componentspy---sp-500-volatility-by-sector)
 - [mahalanobis_regime.py - Multivariate Stress Detection](#mahalanobis_regimepy---multivariate-stress-detection)
 - [Output Files](#output-files)
 - [Troubleshooting](#troubleshooting)
@@ -737,6 +738,185 @@ python get_quotes.py --help
 python volatility_analysis.py --help
 python mahalanobis_regime.py --help
 ```
+
+---
+
+## 📈 vol_sp500components.py - S&P 500 Volatility by Sector
+
+### What It Does
+Analyzes 1-month and 3-month annualized volatility for all S&P 500 components using the last 3 years of price data from `spy_3y.json`. Organizes results by GICS sector into separate folders for easy sector-based analysis.
+
+### How It Works
+1. **Loads** price data from `clean_data/spy_3y.json`
+2. **Maps** tickers to GICS sectors using `clean_data/S&P500Tickers.csv`
+3. **Calculates** 1M (21-day) and 3M (63-day) rolling volatilities using log returns
+4. **Exports** individual ticker JSON files organized by sector folder
+5. **Generates** sector summary reports with average volatility by sector
+
+### Basic Usage
+
+#### Default Output (to volatility_output/sp500_vol/)
+```bash
+python vol_sp500components.py
+```
+
+#### Custom Output Directory
+```bash
+python vol_sp500components.py --output-dir my_analysis
+```
+
+#### Custom Lookback Period
+```bash
+python vol_sp500components.py --lookback-years 2
+```
+
+### Command-Line Options
+
+| Option | Short | Description | Default | Example |
+|--------|-------|-------------|---------|---------|
+| `--output-dir` | `-o` | Output directory path | `volatility_output/sp500_vol` | `--output-dir custom_output` |
+| `--lookback-years` | `-y` | Years of data to analyze | `3` | `--lookback-years 2` |
+
+### Output Structure
+
+Results are organized by GICS sector:
+
+```
+volatility_output/sp500_vol/
+├── Information_Technology/
+│   ├── volatility_AAPL.json
+│   ├── volatility_MSFT.json
+│   └── volatility_NVDA.json
+├── Financials/
+│   ├── volatility_JPM.json
+│   └── volatility_BAC.json
+├── Health_Care/
+│   ├── volatility_JNJ.json
+│   └── volatility_UNH.json
+├── Unclassified_Tickers/
+│   └── volatility_XYZ.json
+├── SECTOR_SUMMARY.txt
+└── volatility_summary.json
+```
+
+### Output Files
+
+#### 1. Individual Ticker JSON
+Each stock gets its own JSON file with:
+
+```json
+{
+  "ticker": "AAPL",
+  "gics_sector": "Information Technology",
+  "current_vol_1m": 0.185,
+  "current_vol_3m": 0.192,
+  "vol_1m_mean": 0.205,
+  "vol_1m_min": 0.120,
+  "vol_1m_max": 0.450,
+  "vol_3m_mean": 0.198,
+  "vol_3m_min": 0.125,
+  "vol_3m_max": 0.420,
+  "num_data_points": 750,
+  "date_range_start": "2023-01-03",
+  "date_range_end": "2025-12-29",
+  "calculation_date": "2025-12-31T10:30:00"
+}
+```
+
+#### 2. Sector Summary (SECTOR_SUMMARY.txt)
+Text report with sector-level statistics:
+
+```
+================================================================================
+S&P 500 COMPONENTS - VOLATILITY SUMMARY BY GICS SECTOR
+Calculation Date: 2025-12-31 10:30:00
+================================================================================
+
+Communication Services
+  Tickers: 22
+  Avg 1M Vol: 21.50%
+  Avg 3M Vol: 20.80%
+
+Consumer Discretionary
+  Tickers: 51
+  Avg 1M Vol: 25.30%
+  Avg 3M Vol: 24.10%
+
+...
+```
+
+#### 3. Overall Summary (volatility_summary.json)
+JSON with aggregated sector statistics:
+
+```json
+{
+  "calculation_date": "2025-12-31T10:30:00",
+  "method": "log",
+  "units": "percent",
+  "windows": {"1M": 21, "3M": 63},
+  "total_tickers_processed": 499,
+  "by_sector": {
+    "Information Technology": {
+      "ticker_count": 75,
+      "avg_vol_1m": 0.235,
+      "avg_vol_3m": 0.228
+    }
+  }
+}
+```
+
+### GICS Sectors
+The script organizes tickers into 11 GICS sectors:
+- Communication Services
+- Consumer Discretionary
+- Consumer Staples
+- Energy
+- Financials
+- Health Care
+- Industrials
+- Information Technology
+- Materials
+- Real Estate
+- Utilities
+
+Tickers without GICS mapping are placed in `Unclassified_Tickers/`.
+
+### Use Cases
+
+**1. Sector Rotation Analysis**
+Compare average volatilities across sectors to identify low-vol defensive sectors vs high-vol growth sectors.
+
+**2. Individual Stock Selection**
+Find low-volatility stocks within each sector for conservative portfolios.
+
+**3. Risk Management**
+Identify stocks with elevated current volatility compared to their historical mean.
+
+**4. Sector Stress Testing**
+Analyze which sectors show highest volatility during market stress periods.
+
+### Example Workflow
+
+```bash
+# 1. Run the analysis
+python vol_sp500components.py
+
+# 2. Review sector summary
+cat volatility_output/sp500_vol/SECTOR_SUMMARY.txt
+
+# 3. Analyze specific sector
+ls volatility_output/sp500_vol/Information_Technology/
+
+# 4. Check individual stock
+cat volatility_output/sp500_vol/Information_Technology/volatility_AAPL.json
+```
+
+### Tips
+- Uses log return method (more mathematically sound for volatility)
+- No graphs generated (optimized for data export and further analysis)
+- Requires at least 63 trading days (3 months) of data per ticker
+- Annualized volatility = daily std dev × √252
+- Results are based on the last 3 years of constituent-filtered price data
 
 ---
 
