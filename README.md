@@ -1,7 +1,9 @@
 # Financial Enlightenment - Stock Analysis Toolkit
-Link to repo: [https://github.com/UnrealCU/market-surfer](url)
+
 A comprehensive Python toolkit for collecting and analyzing stock market data. This toolkit enables you to fetch historical stock prices, analyze volatility patterns, and generate visual reports.
 
+
+Link to repo: [https://github.com/UnrealCU/market-surfer](url)
 ---
 
 ## 📋 Table of Contents
